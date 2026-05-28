@@ -7,21 +7,17 @@ const { ruruHTML } = require('ruru/server');
 const { loadFilesSync } = require('@graphql-tools/load-files');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
 
-// const typesArray = loadFilesSync(path.join(__dirname, "**/*.graphql"));
 const typesArray = loadFilesSync(["./products/products.graphql", "./orders/orders.graphql"]);
+const resolversArray = loadFilesSync(["./products/products.resolvers.js", "./orders/orders.resolvers.js"]);
 
 const schema = makeExecutableSchema({
-    typeDefs: typesArray
+    typeDefs: typesArray,
+    resolvers: resolversArray
 });
-
-const root = {
-    products: require('./products/products.model'),
-    orders: require('./orders/orders.model')
-};
 
 const app = express();
 
-app.use('/graphql', createHandler({schema: schema, rootValue: root }));
+app.use('/graphql', createHandler({ schema: schema }));
 
 app.get('/', (_req, res) => {
     res.type('html');
