@@ -1,8 +1,11 @@
-const express = require('express');
 const path = require('path');
 
-const { createHandler } = require('graphql-http/lib/use/express');
-const { ruruHTML } = require('ruru/server');
+const { ApolloServer } = require('@apollo/server');
+const { expressMiddleware } = require('@as-integrations/express5');
+const { ApolloServerPluginDrainHttpServer } = require('@apollo/server/plugin/drainHttpServer');
+
+const http = require('http');
+const express = require('express');
 
 const { loadFilesSync } = require('@graphql-tools/load-files');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
@@ -10,22 +13,40 @@ const { makeExecutableSchema } = require('@graphql-tools/schema');
 const typesArray = loadFilesSync(["./products/products.graphql", "./orders/orders.graphql"]);
 const resolversArray = loadFilesSync(["./products/products.resolvers.js", "./orders/orders.resolvers.js"]);
 
-const schema = makeExecutableSchema({
-    typeDefs: typesArray,
-    resolvers: resolversArray
-});
+async function startApolloServer() {
+    const PORT = 4000;    
+    const app = express();
 
-const app = express();
+    // BUILD GRAPHQL SERVER
+    const httpServer = http.createServer(app);
 
-app.use('/graphql', createHandler({ schema: schema }));
+    const schema = makeExecutableSchema({
+        typeDefs: typesArray,
+        resolvers: resolversArray
+    });
 
-app.get('/', (_req, res) => {
-    res.type('html');
-    res.end(ruruHTML({ endpoint: '/graphql' }));
-});
+    const server = new ApolloServer({
+        schema: schema,
+        plugins: [ApolloServerPluginDrainHttpServer({httpServer})],
+    });
 
-const PORT = 4000;
+    // START GRAPHQL SERVER
+    await server.start();
 
-app.listen(PORT, () => {
-    console.log(`Running our GraphQL Server on PORT ${PORT}`);
-});
+    // ADD SERVER TO EXPRESS MIDDLEWARE
+    app.use(    
+        express.json(),
+        expressMiddleware(server),
+    );
+    
+    // SET UP SERVER
+    await new Promise((resolve) => {
+        httpServer.listen(PORT, () => {
+            console.log(`Running our GraphQL Server on PORT ${PORT}`);
+        }, resolve)
+    });
+}
+
+startApolloServer();
+
+
