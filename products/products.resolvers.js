@@ -5,11 +5,19 @@ module.exports = {
         products: (parent, args, context, info) => {
             return productsModel.getAllProducts();
         },
-        productById: (parent, args, context, info) => {
+        product: (parent, args, context, info) => {
             return productsModel.getProductById(args.id);
         },
         productsByPrice: (parent, args, context, info) => {
             return productsModel.getProductsByPriceRange(args.min, args.max);
+        }
+    },
+    Mutation: {
+        addNewProduct: (parent, args, context, info) => {
+            return productsModel.addNewProduct(args.id, args.description, args.price);
+        },
+        addNewProductReview: (_, args) => {
+            return productsModel.addNewProductReview(args.productId, args.rating, args.comment);
         }
     }
 };
