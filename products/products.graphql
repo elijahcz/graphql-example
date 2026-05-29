@@ -1,6 +1,7 @@
 type Query {
     products: [Product]
     productsByPrice(min: Float! max: Float!): [Product]
+    productById(id: Int!): Product
 }
 
 type Product {
@@ -14,4 +15,3 @@ type Review {
     rating: Int!
     comment: String
 }
-
