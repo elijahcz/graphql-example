@@ -34,16 +34,14 @@ async function startApolloServer() {
     await server.start();
 
     // ADD SERVER TO EXPRESS MIDDLEWARE
-    app.use(    
+    app.use('/graphql',
         express.json(),
         expressMiddleware(server),
     );
     
     // SET UP SERVER
-    await new Promise((resolve) => {
-        httpServer.listen(PORT, () => {
-            console.log(`Running our GraphQL Server on PORT ${PORT}`);
-        }, resolve)
+    httpServer.listen(PORT, () => {
+        console.log(`Running our GraphQL Server on PORT ${PORT}`);
     });
 }
 
